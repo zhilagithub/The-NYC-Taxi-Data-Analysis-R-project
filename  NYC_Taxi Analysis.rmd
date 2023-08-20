@@ -1,0 +1,125 @@
+---
+author: Zhila
+date: 2023-08-19
+
+title: "\"The NYC Taxi Data Analysis\""
+viewport: width=device-width, initial-scale=1
+---
+
+::: {#MathJax_Message style="display: none;"}
+:::
+
+::: {.container-fluid .main-container}
+::: {#header}
+# "The NYC Taxi Data Analysis" {#the-nyc-taxi-data-analysis .title .toc-ignore}
+
+#### Zhila {#zhila .author}
+
+#### 2023-08-19 {#section .date}
+:::
+
+In this document, we will analyze some data using R.
+
+``` r
+# Load necessary libraries
+library(ggplot2)
+library(dplyr)
+```
+
+``` hljs
+## 
+## Attaching package: 'dplyr'
+```
+
+``` hljs
+## The following objects are masked from 'package:stats':
+## 
+##     filter, lag
+```
+
+``` hljs
+## The following objects are masked from 'package:base':
+## 
+##     intersect, setdiff, setequal, union
+```
+
+``` r
+# Step 1: Data Loading and Cleaning
+my_data <- read.csv(file = "2017_Yellow_Taxi_Trip_Data.csv")
+cleaned_data <- my_data %>%
+  # Handle missing values
+  na.omit() %>%
+  # Convert date columns to proper datetime format
+  mutate(
+    tpep_pickup_datetime = as.POSIXct(tpep_pickup_datetime, format = "%m/%d/%Y %I:%M:%S %p"),
+    tpep_dropoff_datetime = as.POSIXct(tpep_dropoff_datetime, format = "%m/%d/%Y %I:%M:%S %p")
+  )
+
+# Step 2: Data Exploration and Visualization
+# Histogram of trip distance
+ggplot(cleaned_data, aes(x = trip_distance)) +
+  geom_histogram(binwidth = 1, fill = "blue", color = "black") +
+  labs(title = "Distribution of Trip Distances",
+       x = "Trip Distance",
+       y = "Frequency")
+```
+
+![](vertopal_6025b91df7b84a4ea08b7d099295ad48/fae9c3be1c46c1a7f5959d47843c9d4aaf389944.png){width="672"}
+
+``` r
+# Step 3: Feature Engineering
+cleaned_data <- cleaned_data %>%
+  mutate(
+    trip_duration = as.numeric(difftime(tpep_dropoff_datetime, tpep_pickup_datetime, units = "mins")),
+    has_tip = ifelse(tip_amount > 0, "Yes", "No")
+  )
+
+# Step 4: Descriptive Statistics
+summary(cleaned_data)
+```
+
+``` hljs
+##        X                VendorID     tpep_pickup_datetime            
+##  Min.   :    12127   Min.   :1.000   Min.   :2017-01-01 00:08:25.00  
+##  1st Qu.: 28520556   1st Qu.:1.000   1st Qu.:2017-03-30 03:09:38.50  
+##  Median : 56731504   Median :2.000   Median :2017-06-23 12:35:57.00  
+##  Mean   : 56758486   Mean   :1.556   Mean   :2017-06-29 07:53:56.31  
+##  3rd Qu.: 85374524   3rd Qu.:2.000   3rd Qu.:2017-10-02 10:34:34.00  
+##  Max.   :113486300   Max.   :2.000   Max.   :2017-12-31 23:45:30.00  
+##  tpep_dropoff_datetime            passenger_count trip_distance   
+##  Min.   :2017-01-01 00:17:20.00   Min.   :0.000   Min.   : 0.000  
+##  1st Qu.:2017-03-30 03:11:20.50   1st Qu.:1.000   1st Qu.: 0.990  
+##  Median :2017-06-23 12:55:11.00   Median :1.000   Median : 1.610  
+##  Mean   :2017-06-29 08:10:57.15   Mean   :1.642   Mean   : 2.913  
+##  3rd Qu.:2017-10-02 10:53:47.00   3rd Qu.:2.000   3rd Qu.: 3.060  
+##  Max.   :2017-12-31 23:49:24.00   Max.   :6.000   Max.   :33.960  
+##    RatecodeID     store_and_fwd_flag  PULocationID    DOLocationID  
+##  Min.   : 1.000   Length:22699       Min.   :  1.0   Min.   :  1.0  
+##  1st Qu.: 1.000   Class :character   1st Qu.:114.0   1st Qu.:112.0  
+##  Median : 1.000   Mode  :character   Median :162.0   Median :162.0  
+##  Mean   : 1.043                      Mean   :162.4   Mean   :161.5  
+##  3rd Qu.: 1.000                      3rd Qu.:233.0   3rd Qu.:233.0  
+##  Max.   :99.000                      Max.   :265.0   Max.   :265.0  
+##   payment_type    fare_amount          extra            mta_tax       
+##  Min.   :1.000   Min.   :-120.00   Min.   :-1.0000   Min.   :-0.5000  
+##  1st Qu.:1.000   1st Qu.:   6.50   1st Qu.: 0.0000   1st Qu.: 0.5000  
+##  Median :1.000   Median :   9.50   Median : 0.0000   Median : 0.5000  
+##  Mean   :1.337   Mean   :  13.03   Mean   : 0.3333   Mean   : 0.4974  
+##  3rd Qu.:2.000   3rd Qu.:  14.50   3rd Qu.: 0.5000   3rd Qu.: 0.5000  
+##  Max.   :4.000   Max.   : 999.99   Max.   : 4.5000   Max.   : 0.5000  
+##    tip_amount       tolls_amount     improvement_surcharge  total_amount    
+##  Min.   :  0.000   Min.   : 0.0000   Min.   :-0.3000       Min.   :-120.30  
+##  1st Qu.:  0.000   1st Qu.: 0.0000   1st Qu.: 0.3000       1st Qu.:   8.75  
+##  Median :  1.350   Median : 0.0000   Median : 0.3000       Median :  11.80  
+##  Mean   :  1.836   Mean   : 0.3125   Mean   : 0.2996       Mean   :  16.31  
+##  3rd Qu.:  2.450   3rd Qu.: 0.0000   3rd Qu.: 0.3000       3rd Qu.:  17.80  
+##  Max.   :200.000   Max.   :19.1000   Max.   : 0.3000       Max.   :1200.29  
+##  trip_duration       has_tip         
+##  Min.   : -16.98   Length:22699      
+##  1st Qu.:   6.65   Class :character  
+##  Median :  11.18   Mode  :character  
+##  Mean   :  17.01                     
+##  3rd Qu.:  18.38                     
+##  Max.   :1439.55
+```
+:::
